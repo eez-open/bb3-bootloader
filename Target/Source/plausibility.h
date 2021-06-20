@@ -366,7 +366,7 @@
 *   F I L E   S Y S T E M   I N T E R F A C E   C O N F I G U R A T I O N   C H E C K
 ****************************************************************************************/
 #ifndef BOOT_FILE_SYS_ENABLE
-#define BOOT_FILE_SYS_ENABLE      (0)
+#define BOOT_FILE_SYS_ENABLE      (1)
 #endif
 
 #if (BOOT_FILE_SYS_ENABLE < 0) || (BOOT_FILE_SYS_ENABLE > 1)
