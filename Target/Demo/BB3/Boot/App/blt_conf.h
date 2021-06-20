@@ -54,6 +54,7 @@
 
 /** \brief Enable/disable support for firmware updates from a locally attached storage.*/
 #define BOOT_FILE_SYS_ENABLE            (1)
+#define BOOT_FILE_LOGGING_ENABLE        (1)
 
 /****************************************************************************************
 *   C O M M U N I C A T I O N   I N T E R F A C E   C O N F I G U R A T I O N
@@ -65,7 +66,7 @@
  *
  */
 /** \brief Enable/disable USB transport layer. */
-#define BOOT_COM_USB_ENABLE             (1)
+#define BOOT_COM_USB_ENABLE             (0)
 /** \brief Configure number of bytes in the target->host data packet. */
 #define BOOT_COM_USB_TX_MAX_DATA        (63)
 /** \brief Configure number of bytes in the host->target data packet. */
