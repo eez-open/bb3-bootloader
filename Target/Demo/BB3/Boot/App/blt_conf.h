@@ -44,7 +44,7 @@
  * de-initialize application specific parts, for example to stop blinking an LED, etc.
  */
 /** \brief Frequency of the external crystal oscillator. */
-#define BOOT_CPU_XTAL_SPEED_KHZ          (8000)
+#define BOOT_CPU_XTAL_SPEED_KHZ          (25000)
 /** \brief Desired system speed. */
 #define BOOT_CPU_SYSTEM_SPEED_KHZ        (216000)
 /** \brief Motorola or Intel style byte ordering. */
@@ -149,7 +149,7 @@
 /** \brief Enable/disable the NVM hook function for supporting additional memory devices. */
 #define BOOT_NVM_HOOKS_ENABLE           (0)
 /** \brief Configure the size of the default memory device (typically flash EEPROM). */
-#define BOOT_NVM_SIZE_KB                (1024)
+#define BOOT_NVM_SIZE_KB                (2048)
 /** \brief Enable/disable hooks functions to override the user program checksum handling. */
 #define BOOT_NVM_CHECKSUM_HOOKS_ENABLE  (0)
 
