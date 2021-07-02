@@ -298,7 +298,7 @@ blt_bool NvmWriteChecksumHook(void)
 * Constant data declarations
 ****************************************************************************************/
 /** \brief Firmware filename. */
-static const blt_char firmwareFilename[] = "/bb3.srec";
+static const blt_char firmwareFilename[] = "/d.s";
 
 
 /****************************************************************************************

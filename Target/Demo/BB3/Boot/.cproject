@@ -133,7 +133,7 @@
                             							
                             <tool id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.1195345753" name="MCU GCC Linker" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker">
                                 								
-                                <option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.script.2017178965" name="Linker Script (-T)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.script" useByScannerDiscovery="false" value="../STM32F746ZGTX.ld" valueType="string"/>
+                                <option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.script.2017178965" name="Linker Script (-T)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.script" useByScannerDiscovery="false" value="../STM32F769IGTX_FLASH.ld" valueType="string"/>
                                 								
                                 <inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.input.231031641" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.input">
                                     									
