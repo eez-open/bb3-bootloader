@@ -87,7 +87,7 @@ void CopInitHook(void)
   /* this function is called upon initialization. might as well use it to initialize
    * the LED driver. It is kind of a visual watchdog anyways.
    */
-  LedBlinkInit(1000);
+  LedBlinkInit(10);
 } /*** end of CopInitHook ***/
 
 
@@ -298,7 +298,7 @@ blt_bool NvmWriteChecksumHook(void)
 * Constant data declarations
 ****************************************************************************************/
 /** \brief Firmware filename. */
-static const blt_char firmwareFilename[] = "/d.s";
+static const blt_char firmwareFilename[] = "/o.s";
 
 
 /****************************************************************************************
