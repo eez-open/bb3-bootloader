@@ -87,7 +87,7 @@ void CopInitHook(void)
   /* this function is called upon initialization. might as well use it to initialize
    * the LED driver. It is kind of a visual watchdog anyways.
    */
-  LedBlinkInit(10);
+  LedBlinkInit(500);
 } /*** end of CopInitHook ***/
 
 

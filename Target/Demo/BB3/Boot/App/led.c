@@ -41,7 +41,6 @@
 /** \brief Holds the desired LED blink interval time. */
 static blt_int16u ledBlinkIntervalMs;
 
-
 /************************************************************************************//**
 ** \brief     Initializes the LED blink driver.
 ** \param     interval_ms Specifies the desired LED blink interval time in milliseconds.
@@ -60,6 +59,7 @@ void LedBlinkInit(blt_int16u interval_ms)
 ** \return    none.
 **
 ****************************************************************************************/
+
 void LedBlinkTask(void)
 {
   static blt_bool ledOn = BLT_FALSE;
@@ -73,13 +73,12 @@ void LedBlinkTask(void)
     {
       ledOn = BLT_TRUE;
       LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
-      LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_12);
     }
     else
     {
       ledOn = BLT_FALSE;
       LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
-      LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
+      //LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
     }
     /* schedule the next blink event */
     nextBlinkEvent = TimerGet() + ledBlinkIntervalMs;
@@ -96,8 +95,8 @@ void LedBlinkTask(void)
 void LedBlinkExit(void)
 {
   /* turn the LED off */
-  LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
-  LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
+  //LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
+  //LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
 } /*** end of LedBlinkExit ***/
 
 

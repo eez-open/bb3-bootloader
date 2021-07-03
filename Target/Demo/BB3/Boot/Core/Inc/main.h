@@ -42,7 +42,45 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+typedef struct
+{
+  uint32_t TextColor;
+  uint32_t BackColor;
+  //sFONT    *pFont;
+}LCD_DrawPropTypeDef;
 
+typedef struct
+{
+  int16_t X;
+  int16_t Y;
+}Point, * pPoint;
+
+/**
+  * @brief  LCD status structure definition
+  */
+#define LCD_OK                 ((uint8_t)0x00)
+#define LCD_ERROR              ((uint8_t)0x01)
+#define LCD_TIMEOUT            ((uint8_t)0x02)
+
+/**
+  * @brief  LCD FB_StartAddress
+  */
+#define LCD_FB_START_ADDRESS       ((uint32_t)0xC0000000)
+
+/**
+  * @brief  LCD color
+  */
+#define LCD_COLOR_BLUE          ((uint32_t)0xFF0000FF)
+#define LCD_COLOR_GREEN         ((uint32_t)0xFF00FF00)
+#define LCD_COLOR_RED           ((uint32_t)0xFFFF0000)
+
+//static LTDC_HandleTypeDef  hLtdcHandler;
+//static DMA2D_HandleTypeDef hDma2dHandler;
+/* Default LCD configuration with LCD Layer 1 */
+static uint32_t            ActiveLayer = 0;
+
+#define LCD_LayerCfgTypeDef    LTDC_LayerCfgTypeDef
+#define MAX_LAYER_NUMBER       ((uint32_t)2)
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
