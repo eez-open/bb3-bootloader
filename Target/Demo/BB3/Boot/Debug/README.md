@@ -4,13 +4,11 @@ Erase MCU
 
 Flash BB3_SD_bootloader.elf
 
-After power up boot loader will flash screen very fast 10ms ON/OFF
+Bootloader will search for o.s file in root of SD card - if exists it will start flashing    
 
-It will search for o.s file in root of SD card - if exists it will flash    
+Wait around 2,5 minutes until progress bar reach max 
 
 For the first time put o.s file to SD card manually
-
-After boot loader finish - it needs approximately 2 minutes it will boot into app
 
 Next time you can send new FW over eez Studio
 
