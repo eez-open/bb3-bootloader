@@ -28,7 +28,9 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+static uint32_t ActiveLayer = 0;
+static uint32_t LCD_FB_START[400][200];
+static LCD_DrawPropTypeDef DrawProp[MAX_LAYER_NUMBER];
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -174,6 +176,84 @@ void BSP_LCD_DrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t RGB_Code)
   { /* ARGB8888 format */
     *(__IO uint32_t*) (hltdc.LayerCfg[ActiveLayer].FBStartAdress + (4*(Ypos*BSP_LCD_GetXSize() + Xpos))) = RGB_Code;
   }
+}
+/**
+  * @brief  Sets the LCD text color.
+  * @param  Color: Text color code ARGB(8-8-8-8)
+  * @retval None
+  */
+void BSP_LCD_SetTextColor(uint32_t Color)
+{
+  DrawProp[ActiveLayer].TextColor = Color;
+}
+
+void BSP_LCD_FillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Height)
+{
+  uint32_t  x_address = 0;
+
+  /* Set the text color */
+  BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+
+  /* Get the rectangle start address */
+  if(hltdc.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565)
+  { /* RGB565 format */
+    x_address = (hltdc.LayerCfg[ActiveLayer].FBStartAdress) + 2*(BSP_LCD_GetXSize()*Ypos + Xpos);
+  }
+  else
+  { /* ARGB8888 format */
+    x_address = (hltdc.LayerCfg[ActiveLayer].FBStartAdress) + 4*(BSP_LCD_GetXSize()*Ypos + Xpos);
+  }
+  /* Fill the rectangle */
+  LL_FillBuffer(ActiveLayer, (uint32_t *)x_address, Width, Height, (BSP_LCD_GetXSize() - Width), LCD_COLOR_GREEN);
+}
+/**
+  * @brief  Draws an horizontal line.
+  * @param  Xpos: X position
+  * @param  Ypos: Y position
+  * @param  Length: Line length
+  * @retval None
+  */
+void BSP_LCD_DrawHLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length)
+{
+  uint32_t  Xaddress = 0;
+
+  /* Get the line address */
+  if(hltdc.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565)
+  { /* RGB565 format */
+    Xaddress = (hltdc.LayerCfg[ActiveLayer].FBStartAdress) + 2*(BSP_LCD_GetXSize()*Ypos + Xpos);
+  }
+  else
+  { /* ARGB8888 format */
+    Xaddress = (hltdc.LayerCfg[ActiveLayer].FBStartAdress) + 4*(BSP_LCD_GetXSize()*Ypos + Xpos);
+  }
+
+  /* Write line */
+  LL_FillBuffer(ActiveLayer, (uint32_t *)Xaddress, Length, 1, 0, LCD_COLOR_RED);
+}
+
+/**
+  * @brief  Draws a vertical line.
+  * @param  Xpos: X position
+  * @param  Ypos: Y position
+  * @param  Length: Line length
+  * @retval None
+  */
+void BSP_LCD_DrawVLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length)
+{
+  uint32_t  Xaddress = 0;
+
+  /* Get the line address */
+  if(hltdc.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565)
+  { /* RGB565 format */
+    Xaddress = (hltdc.LayerCfg[ActiveLayer].FBStartAdress) + 2*(BSP_LCD_GetXSize()*Ypos + Xpos);
+  }
+  else
+  { /* ARGB8888 format */
+    Xaddress = (hltdc.LayerCfg[ActiveLayer].FBStartAdress) + 4*(BSP_LCD_GetXSize()*Ypos + Xpos);
+  }
+
+  /* Write line */
+  LL_FillBuffer(ActiveLayer, (uint32_t *)Xaddress, 1, Length, (BSP_LCD_GetXSize() - 1), LCD_COLOR_RED);
 }
 /* USER CODE END 0 */
 
@@ -321,14 +401,7 @@ static void MX_DMA2D_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN DMA2D_Init 2 */
-  //BSP_LCD_Clear(LCD_COLOR_GREEN);
-
-
-	for(int x=0;x<480;x++){
-		for(int y=0;y<272;y++){
-			BSP_LCD_DrawPixel(x,y,LCD_COLOR_GREEN);
-		}
-	}
+  BSP_LCD_Clear(0);
   /* USER CODE END DMA2D_Init 2 */
 
 }
@@ -403,7 +476,7 @@ static void MX_LTDC_Init(void)
 	  pLayerCfg.Alpha0 = 255;
 	  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
 	  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
-	  pLayerCfg.FBStartAdress = 0;
+	  pLayerCfg.FBStartAdress = (uint32_t)&LCD_FB_START;
 	#if CONF_OPTION_FPGA
 	  pLayerCfg.ImageWidth = 800;
 	  pLayerCfg.ImageHeight = 480;

@@ -42,6 +42,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+extern volatile uint8_t erase;
+extern volatile uint8_t programming;
+
 typedef struct
 {
   uint32_t TextColor;
@@ -65,7 +68,7 @@ typedef struct
 /**
   * @brief  LCD FB_StartAddress
   */
-#define LCD_FB_START_ADDRESS       ((uint32_t)0xC0000000)
+//#define LCD_FB_START_ADDRESS       ((uint32_t)&LCD_FB_START)
 
 /**
   * @brief  LCD color
@@ -77,7 +80,7 @@ typedef struct
 //static LTDC_HandleTypeDef  hLtdcHandler;
 //static DMA2D_HandleTypeDef hDma2dHandler;
 /* Default LCD configuration with LCD Layer 1 */
-static uint32_t            ActiveLayer = 0;
+
 
 #define LCD_LayerCfgTypeDef    LTDC_LayerCfgTypeDef
 #define MAX_LAYER_NUMBER       ((uint32_t)2)
@@ -102,7 +105,10 @@ static uint32_t            ActiveLayer = 0;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void BSP_LCD_Clear(uint32_t Color);
+void BSP_LCD_FillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Height);
+void BSP_LCD_DrawHLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length);
+void BSP_LCD_DrawVLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

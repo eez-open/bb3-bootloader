@@ -87,9 +87,8 @@ void CopInitHook(void)
   /* this function is called upon initialization. might as well use it to initialize
    * the LED driver. It is kind of a visual watchdog anyways.
    */
-  LedBlinkInit(500);
+  LedBlinkInit(350);
 } /*** end of CopInitHook ***/
-
 
 /************************************************************************************//**
 ** \brief     Callback that gets called at the end of the internal COP driver

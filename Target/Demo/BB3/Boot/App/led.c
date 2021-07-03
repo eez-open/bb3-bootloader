@@ -34,12 +34,15 @@
 #include "stm32f7xx.h"                           /* STM32 CPU and HAL header           */
 #include "stm32f7xx_ll_gpio.h"                   /* STM32 LL GPIO header               */
 
-
 /****************************************************************************************
 * Local data declarations
 ****************************************************************************************/
 /** \brief Holds the desired LED blink interval time. */
 static blt_int16u ledBlinkIntervalMs;
+uint16_t percent = 0;
+uint8_t loading = 0;
+volatile uint8_t erase = 0;
+volatile uint8_t programming = 0;
 
 /************************************************************************************//**
 ** \brief     Initializes the LED blink driver.
@@ -65,24 +68,30 @@ void LedBlinkTask(void)
   static blt_bool ledOn = BLT_FALSE;
   static blt_int32u nextBlinkEvent = 0;
 
-  /* check for blink event */
-  if (TimerGet() >= nextBlinkEvent)
-  {
-    /* toggle the LED state */
-    if (ledOn == BLT_FALSE)
-    {
-      ledOn = BLT_TRUE;
-      LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
-    }
-    else
-    {
-      ledOn = BLT_FALSE;
-      LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
-      //LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
-    }
-    /* schedule the next blink event */
-    nextBlinkEvent = TimerGet() + ledBlinkIntervalMs;
-  }
+	  /* check for blink event */
+	  if (TimerGet() >= nextBlinkEvent)
+	  {
+	  if(erase || programming){
+		BSP_LCD_FillRect(41,128,percent,17);
+		if(percent < 398){
+			percent++;
+		}
+	  }
+		/* toggle the LED state */
+		if (ledOn == BLT_FALSE)
+		{
+		  ledOn = BLT_TRUE;
+		  LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
+		}
+		else
+		{
+		  ledOn = BLT_FALSE;
+		  //LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
+		  //LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
+		}
+		/* schedule the next blink event */
+		nextBlinkEvent = TimerGet() + ledBlinkIntervalMs;
+	  }
 } /*** end of LedBlinkTask ***/
 
 

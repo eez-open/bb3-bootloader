@@ -32,7 +32,7 @@
 #include "boot.h"                                     /* bootloader generic header     */
 #include <string.h>                                   /* for strcpy etc.               */
 #include <ctype.h>                                    /* for toupper() etc.            */
-
+#include "main.h"
 
 #if (BOOT_FILE_SYS_ENABLE > 0)
 /****************************************************************************************
@@ -199,6 +199,10 @@ void FileTask(void)
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
     FileFirmwareUpdateLogHook("Firmware update request detected\n\r");
     FileFirmwareUpdateLogHook("Opening firmware file for reading...");
+    BSP_LCD_DrawHLine(40,126,400);
+    BSP_LCD_DrawVLine(40,126,20);
+    BSP_LCD_DrawVLine(440,126,20);
+    BSP_LCD_DrawHLine(40,146,400);
 #endif
     /* attempt to obtain a file object for the firmware file */
     if (f_open(&fatFsObjects.file, FileGetFirmwareFilenameHook(), FA_OPEN_EXISTING | FA_READ) != FR_OK)
@@ -208,6 +212,7 @@ void FileTask(void)
       /* can't open file */
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
       FileFirmwareUpdateLogHook("ERROR\n\r");
+      BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
       FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_OPEN_FIRMWARE_FILE);
@@ -238,6 +243,7 @@ void FileTask(void)
       firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
       FileFirmwareUpdateLogHook("ERROR\n\r");
+      BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
       FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_READ_FROM_FILE);
@@ -257,6 +263,7 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
+        BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_INVALID_CHECKSUM_IN_FILE);
@@ -304,6 +311,8 @@ void FileTask(void)
           FileLibByteToHexString((blt_int8u)eraseInfo.start_address, &loggingStr[6]);
           FileFirmwareUpdateLogHook(loggingStr);
           FileFirmwareUpdateLogHook("...");
+          erase=1;
+          programming=0;
           #endif
           /* still here so we are ready to perform the memory erase operation */
           if (NvmErase(eraseInfo.start_address, eraseInfo.total_size) == BLT_FALSE)
@@ -312,6 +321,7 @@ void FileTask(void)
             firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
             #if (BOOT_FILE_LOGGING_ENABLE > 0)
             FileFirmwareUpdateLogHook("ERROR\n\r");
+            BSP_LCD_Clear(LCD_COLOR_RED);
             #endif
             #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
             FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_ERASE_MEMORY);
@@ -341,6 +351,7 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
+        BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_REWINDING_FILE_READ_POINTER);
@@ -368,6 +379,8 @@ void FileTask(void)
         FileLibByteToHexString((blt_int8u)eraseInfo.start_address, &loggingStr[6]);
         FileFirmwareUpdateLogHook(loggingStr);
         FileFirmwareUpdateLogHook("...");
+        erase=1;
+        programming=0;
         #endif
         if (NvmErase(eraseInfo.start_address, eraseInfo.total_size) == BLT_FALSE)
         {
@@ -375,6 +388,7 @@ void FileTask(void)
           firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
           #if (BOOT_FILE_LOGGING_ENABLE > 0)
           FileFirmwareUpdateLogHook("ERROR\n\r");
+          BSP_LCD_Clear(LCD_COLOR_RED);
           #endif
           #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
           FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_ERASE_MEMORY);
@@ -403,6 +417,7 @@ void FileTask(void)
       firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
       FileFirmwareUpdateLogHook("Reading line from file...ERROR\n\r");
+      BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
       FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_READ_FROM_FILE);
@@ -422,6 +437,7 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("Invalid checksum found...ERROR\n\r");
+        BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_INVALID_CHECKSUM_IN_FILE);
@@ -447,6 +463,8 @@ void FileTask(void)
       FileLibByteToHexString((blt_int8u)lineParseObject.address, &loggingStr[6]);
       FileFirmwareUpdateLogHook(loggingStr);
       FileFirmwareUpdateLogHook("...");
+      erase=0;
+      programming=1;
 #endif
       /* program the data */
       if (NvmWrite(lineParseObject.address, parse_result, lineParseObject.data) == BLT_FALSE)
@@ -455,6 +473,7 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
+        BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_PROGRAM_MEMORY);
@@ -480,6 +499,7 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
+        BSP_LCD_Clear(LCD_COLOR_RED);
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_WRITE_CHECKSUM);
