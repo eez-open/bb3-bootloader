@@ -31,8 +31,11 @@
 ****************************************************************************************/
 #include "boot.h"                                /* bootloader generic header          */
 #include "led.h"                                 /* module header                      */
+#include <stdio.h>
 #include "stm32f7xx.h"                           /* STM32 CPU and HAL header           */
 #include "stm32f7xx_ll_gpio.h"                   /* STM32 LL GPIO header               */
+#include "file.h"
+#include <string.h>
 
 /****************************************************************************************
 * Local data declarations
@@ -40,9 +43,14 @@
 /** \brief Holds the desired LED blink interval time. */
 static blt_int16u ledBlinkIntervalMs;
 uint16_t percent = 0;
-uint8_t loading = 0;
+static double value = 0;
 volatile uint8_t erase = 0;
 volatile uint8_t programming = 0;
+volatile uint8_t errorJump = 0;
+volatile uint32_t currentAddress;
+volatile uint32_t fwSize;
+volatile uint32_t startAddress;
+volatile uint8_t missingSD;
 
 /************************************************************************************//**
 ** \brief     Initializes the LED blink driver.
@@ -72,16 +80,59 @@ void LedBlinkTask(void)
 	  if (TimerGet() >= nextBlinkEvent)
 	  {
 	  if(erase || programming){
-		BSP_LCD_FillRect(41,128,percent,17);
-		if(percent < 398){
-			percent++;
+		static char displayData[20];
+		ledBlinkIntervalMs = 350;
+		LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
+		LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_12);
+		if(erase){
+			BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+			BSP_LCD_DisplayStringAt(0, 120, (uint8_t*)"Erasing old firmware...", CENTER_MODE);
+			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+			BSP_LCD_FillRect(42,148,percent,17);
 		}
+		else{
+			value = currentAddress-134250496;
+			value = (value/fwSize)*200;
+			percent+= (long)value;
+			FileLibLongToIntString(percent/2-100,displayData);
+			strcat(displayData,"%");
+			BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+			BSP_LCD_DisplayStringAt(0, 120, (uint8_t*)"                            ", CENTER_MODE);
+			BSP_LCD_DisplayStringAt(0, 120, (uint8_t*)"Flashing: ", CENTER_MODE);
+			BSP_LCD_DisplayStringAt(280, 120, (uint8_t*)displayData, LEFT_MODE);
+			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+			BSP_LCD_FillRect(42,148,percent,17);
+		}
+		if(percent < 200){
+			if(erase){
+				percent++;
+			}
+		}
+	  }
+	  if(errorJump){
+		  BSP_LCD_SetTextColor(0);
+		  BSP_LCD_FillRect(0,0,480,282);
+		  BSP_LCD_Clear(0);
+		  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+		  BSP_LCD_DisplayStringAt(0, 100, (uint8_t*)"Update failed!", CENTER_MODE);
+		  BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)"Please restart and try again,", CENTER_MODE);
+		  BSP_LCD_DisplayStringAt(0, 160, (uint8_t*)"or use USB DFU bootloader.", CENTER_MODE);
+		  HAL_Delay(3000);
+		  CpuStartUserProgram();
+	  }
+	  if(missingSD){
+		  BSP_LCD_SetTextColor(0);
+		  BSP_LCD_FillRect(0,0,480,282);
+		  BSP_LCD_Clear(0);
+		  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+		  BSP_LCD_DisplayStringAt(0, 100, (uint8_t*)"Missing SD card!", CENTER_MODE);
+		  BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)"Please, turn off and insert SD", CENTER_MODE);
 	  }
 		/* toggle the LED state */
 		if (ledOn == BLT_FALSE)
 		{
 		  ledOn = BLT_TRUE;
-		  LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
+		  //LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
 		}
 		else
 		{
@@ -104,8 +155,8 @@ void LedBlinkTask(void)
 void LedBlinkExit(void)
 {
   /* turn the LED off */
-  //LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
-  //LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
+  LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_12);
+  LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_15);
 } /*** end of LedBlinkExit ***/
 
 

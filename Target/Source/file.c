@@ -33,6 +33,7 @@
 #include <string.h>                                   /* for strcpy etc.               */
 #include <ctype.h>                                    /* for toupper() etc.            */
 #include "main.h"
+#include "file.h"
 
 #if (BOOT_FILE_SYS_ENABLE > 0)
 /****************************************************************************************
@@ -67,7 +68,7 @@ typedef struct
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
 static blt_char      FileLibByteNibbleToChar(blt_int8u nibble);
 static blt_char     *FileLibByteToHexString(blt_int8u byte_val, blt_char *destination);
-static blt_char     *FileLibLongToIntString(blt_int32u long_val, blt_char *destination);
+//blt_char     *FileLibLongToIntString(blt_int32u long_val, blt_char *destination);
 #endif
 static blt_int8u     FileLibHexStringToByte(const blt_char *hexstring);
 
@@ -82,7 +83,6 @@ extern void            FileFirmwareUpdateCompletedHook(void);
 extern void            FileFirmwareUpdateErrorHook(blt_int8u error_code);
 extern void            FileFirmwareUpdateLogHook(blt_char *info_string);
 
-
 /****************************************************************************************
 * Local data declarations
 ****************************************************************************************/
@@ -96,9 +96,14 @@ static tSrecLineParseObject lineParseObject;
 static tFileEraseInfo       eraseInfo;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
 /** \brief Local character buffer for storing the string with log information. */
-static blt_char             loggingStr[64];
+static blt_char loggingStr[64];
 #endif
 
+void screenError(){
+	erase=0;
+	programming=0;
+	errorJump=1;
+}
 
 /***********************************************************************************//**
 ** \brief     Initializes the file system interface module. The initial firmware
@@ -198,11 +203,16 @@ void FileTask(void)
 #endif
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
     FileFirmwareUpdateLogHook("Firmware update request detected\n\r");
-    FileFirmwareUpdateLogHook("Opening firmware file for reading...");
-    BSP_LCD_DrawHLine(40,126,400);
-    BSP_LCD_DrawVLine(40,126,20);
-    BSP_LCD_DrawVLine(440,126,20);
-    BSP_LCD_DrawHLine(40,146,400);
+    //FileFirmwareUpdateLogHook("Opening firmware file for reading...");
+    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+	BSP_LCD_DisplayStringAt(0, 20, (uint8_t*)"Please do not turn off!", CENTER_MODE);
+	//BSP_LCD_DisplayStringAt(50, 40, (uint8_t*)"until loading is done.", LEFT_MODE);
+	BSP_LCD_DisplayStringAt(0, 240, (uint8_t*)"EEZ DIB Bench Box 3", CENTER_MODE);
+    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+    BSP_LCD_DrawHLine(40,146,402);
+    BSP_LCD_DrawVLine(40,146,20);
+    BSP_LCD_DrawVLine(442,146,20);
+    BSP_LCD_DrawHLine(40,166,402);
 #endif
     /* attempt to obtain a file object for the firmware file */
     if (f_open(&fatFsObjects.file, FileGetFirmwareFilenameHook(), FA_OPEN_EXISTING | FA_READ) != FR_OK)
@@ -212,10 +222,11 @@ void FileTask(void)
       /* can't open file */
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
       FileFirmwareUpdateLogHook("ERROR\n\r");
-      BSP_LCD_Clear(LCD_COLOR_RED);
+      screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
       FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_OPEN_FIRMWARE_FILE);
+      screenError();
 #endif
       /* nothing left to do now */
       return;
@@ -243,10 +254,11 @@ void FileTask(void)
       firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
       FileFirmwareUpdateLogHook("ERROR\n\r");
-      BSP_LCD_Clear(LCD_COLOR_RED);
+      screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
       FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_READ_FROM_FILE);
+      screenError();
 #endif
       /* close the file */
       f_close(&fatFsObjects.file);
@@ -263,10 +275,11 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
-        BSP_LCD_Clear(LCD_COLOR_RED);
+        screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_INVALID_CHECKSUM_IN_FILE);
+        screenError();
 #endif
         /* close the file */
         f_close(&fatFsObjects.file);
@@ -282,6 +295,7 @@ void FileTask(void)
         /* store the start_address and byte count */
         eraseInfo.start_address = lineParseObject.address;
         eraseInfo.total_size = parse_result;
+        startAddress = lineParseObject.address;
       }
       else
       {
@@ -301,6 +315,7 @@ void FileTask(void)
           FileFirmwareUpdateLogHook("OK\n\r");
           FileFirmwareUpdateLogHook("Erasing ");
           /* convert size to string  */
+          fwSize = eraseInfo.total_size + fwSize;
           FileLibLongToIntString(eraseInfo.total_size, loggingStr);
           FileFirmwareUpdateLogHook(loggingStr);
           FileFirmwareUpdateLogHook(" bytes from memory at 0x");
@@ -311,6 +326,7 @@ void FileTask(void)
           FileLibByteToHexString((blt_int8u)eraseInfo.start_address, &loggingStr[6]);
           FileFirmwareUpdateLogHook(loggingStr);
           FileFirmwareUpdateLogHook("...");
+          currentAddress = eraseInfo.start_address;
           erase=1;
           programming=0;
           #endif
@@ -321,10 +337,11 @@ void FileTask(void)
             firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
             #if (BOOT_FILE_LOGGING_ENABLE > 0)
             FileFirmwareUpdateLogHook("ERROR\n\r");
-            BSP_LCD_Clear(LCD_COLOR_RED);
+            screenError();
             #endif
             #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
             FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_ERASE_MEMORY);
+            screenError();
             #endif
             /* close the file */
             f_close(&fatFsObjects.file);
@@ -351,10 +368,11 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
-        BSP_LCD_Clear(LCD_COLOR_RED);
+        screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_REWINDING_FILE_READ_POINTER);
+        screenError();
 #endif
         /* close the file */
         f_close(&fatFsObjects.file);
@@ -369,6 +387,7 @@ void FileTask(void)
         FileFirmwareUpdateLogHook("OK\n\r");
         FileFirmwareUpdateLogHook("Erasing ");
         /* convert size to string  */
+        fwSize = eraseInfo.total_size + fwSize;
         FileLibLongToIntString(eraseInfo.total_size, loggingStr);
         FileFirmwareUpdateLogHook(loggingStr);
         FileFirmwareUpdateLogHook(" bytes from memory at 0x");
@@ -379,8 +398,10 @@ void FileTask(void)
         FileLibByteToHexString((blt_int8u)eraseInfo.start_address, &loggingStr[6]);
         FileFirmwareUpdateLogHook(loggingStr);
         FileFirmwareUpdateLogHook("...");
+        currentAddress = eraseInfo.start_address;
         erase=1;
         programming=0;
+
         #endif
         if (NvmErase(eraseInfo.start_address, eraseInfo.total_size) == BLT_FALSE)
         {
@@ -388,10 +409,11 @@ void FileTask(void)
           firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
           #if (BOOT_FILE_LOGGING_ENABLE > 0)
           FileFirmwareUpdateLogHook("ERROR\n\r");
-          BSP_LCD_Clear(LCD_COLOR_RED);
+          screenError();
           #endif
           #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
           FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_ERASE_MEMORY);
+          screenError();
           #endif
           /* close the file */
           f_close(&fatFsObjects.file);
@@ -417,10 +439,11 @@ void FileTask(void)
       firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
       FileFirmwareUpdateLogHook("Reading line from file...ERROR\n\r");
-      BSP_LCD_Clear(LCD_COLOR_RED);
+      screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
       FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_READ_FROM_FILE);
+      screenError();
 #endif
       /* close the file */
       f_close(&fatFsObjects.file);
@@ -437,10 +460,11 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("Invalid checksum found...ERROR\n\r");
-        BSP_LCD_Clear(LCD_COLOR_RED);
+        screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_INVALID_CHECKSUM_IN_FILE);
+        screenError();
 #endif
         /* close the file */
         f_close(&fatFsObjects.file);
@@ -451,20 +475,25 @@ void FileTask(void)
     if (parse_result > 0)
     {
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
-      FileFirmwareUpdateLogHook("Programming ");
+
+      //FileFirmwareUpdateLogHook("Programming ");
       /* convert size to string  */
       FileLibLongToIntString(parse_result, loggingStr);
-      FileFirmwareUpdateLogHook(loggingStr);
-      FileFirmwareUpdateLogHook(" bytes to memory at 0x");
+      //FileFirmwareUpdateLogHook(loggingStr);
+      //FileFirmwareUpdateLogHook(" bytes to memory at 0x");
       /* convert address to hex-string  */
       FileLibByteToHexString((blt_int8u)(lineParseObject.address >> 24), &loggingStr[0]);
       FileLibByteToHexString((blt_int8u)(lineParseObject.address >> 16), &loggingStr[2]);
       FileLibByteToHexString((blt_int8u)(lineParseObject.address >> 8), &loggingStr[4]);
       FileLibByteToHexString((blt_int8u)lineParseObject.address, &loggingStr[6]);
-      FileFirmwareUpdateLogHook(loggingStr);
-      FileFirmwareUpdateLogHook("...");
+      currentAddress = lineParseObject.address;
+      //BSP_LCD_ClearStringLine(20);
+      //BSP_LCD_DisplayStringAtLine(20, (uint8_t*)loggingStr);
+      //FileFirmwareUpdateLogHook(loggingStr);
+      //FileFirmwareUpdateLogHook("...");
       erase=0;
       programming=1;
+      percent = 200;
 #endif
       /* program the data */
       if (NvmWrite(lineParseObject.address, parse_result, lineParseObject.data) == BLT_FALSE)
@@ -473,17 +502,18 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
-        BSP_LCD_Clear(LCD_COLOR_RED);
+        screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_PROGRAM_MEMORY);
+        screenError();
 #endif
         /* close the file */
         f_close(&fatFsObjects.file);
         return;
       }
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
-      FileFirmwareUpdateLogHook("OK\n\r");
+      //FileFirmwareUpdateLogHook("OK\n\r");
 #endif
     }
     /* check if the end of the file was reached */
@@ -499,10 +529,11 @@ void FileTask(void)
         firmwareUpdateState = FIRMWARE_UPDATE_STATE_IDLE;
 #if (BOOT_FILE_LOGGING_ENABLE > 0)
         FileFirmwareUpdateLogHook("ERROR\n\r");
-        BSP_LCD_Clear(LCD_COLOR_RED);
+        screenError();
 #endif
 #if (BOOT_FILE_ERROR_HOOK_ENABLE > 0)
         FileFirmwareUpdateErrorHook(FILE_ERROR_CANNOT_WRITE_CHECKSUM);
+        screenError();
 #endif
         /* close the file */
         f_close(&fatFsObjects.file);
@@ -523,8 +554,16 @@ void FileTask(void)
       /* inform application about update completed event via hook function */
       FileFirmwareUpdateCompletedHook();
 #endif
+	  BSP_LCD_SetTextColor(0);
+	  BSP_LCD_FillRect(0,0,480,282);
+	  BSP_LCD_Clear(0);
+	  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+	  BSP_LCD_DisplayStringAt(20, 100, (uint8_t*)"Loading firmware is done.", CENTER_MODE);
+	  BSP_LCD_DisplayStringAt(20, 140, (uint8_t*)"Restarting...", CENTER_MODE);
+	  HAL_Delay(1000);
       /* attempt to start the user program now that programming is done */
-      CpuStartUserProgram();
+      //CpuStartUserProgram();
+	  NVIC_SystemReset();
     }
   }
 } /*** end of FileTask ***/
@@ -797,7 +836,7 @@ static blt_char *FileLibByteToHexString(blt_int8u byte_val, blt_char *destinatio
 ** \return    The resulting string.
 **
 ****************************************************************************************/
-static blt_char *FileLibLongToIntString(blt_int32u long_val, blt_char *destination)
+blt_char *FileLibLongToIntString(blt_int32u long_val, blt_char *destination)
 {
   blt_int32u long_val_cpy = long_val;
 

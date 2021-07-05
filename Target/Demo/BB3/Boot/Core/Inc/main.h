@@ -39,17 +39,25 @@ extern "C" {
 #include "stm32f7xx_ll_pwr.h"
 #include "stm32f7xx_ll_dma.h"
 #include "stm32f7xx_ll_gpio.h"
+#include "fonts.h"
+#include "types.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 extern volatile uint8_t erase;
 extern volatile uint8_t programming;
+extern volatile uint8_t errorJump;
+extern volatile uint32_t currentAddress;
+extern volatile uint32_t fwSize;
+extern volatile uint32_t startAddress;
+extern volatile uint8_t missingSD;
+extern uint16_t percent;
 
 typedef struct
 {
   uint32_t TextColor;
   uint32_t BackColor;
-  //sFONT    *pFont;
+  sFONT    *pFont;
 }LCD_DrawPropTypeDef;
 
 typedef struct
@@ -57,6 +65,17 @@ typedef struct
   int16_t X;
   int16_t Y;
 }Point, * pPoint;
+
+/**
+  * @brief  Line mode structures definition
+  */
+typedef enum
+{
+  CENTER_MODE             = 0x01,    /*!< Center mode */
+  RIGHT_MODE              = 0x02,    /*!< Right mode  */
+  LEFT_MODE               = 0x03     /*!< Left mode   */
+
+}Text_AlignModeTypdef;
 
 /**
   * @brief  LCD status structure definition
@@ -76,6 +95,7 @@ typedef struct
 #define LCD_COLOR_BLUE          ((uint32_t)0xFF0000FF)
 #define LCD_COLOR_GREEN         ((uint32_t)0xFF00FF00)
 #define LCD_COLOR_RED           ((uint32_t)0xFFFF0000)
+#define LCD_COLOR_WHITE         ((uint32_t)0xFFFFFFFF)
 
 //static LTDC_HandleTypeDef  hLtdcHandler;
 //static DMA2D_HandleTypeDef hDma2dHandler;
@@ -83,7 +103,7 @@ typedef struct
 
 
 #define LCD_LayerCfgTypeDef    LTDC_LayerCfgTypeDef
-#define MAX_LAYER_NUMBER       ((uint32_t)2)
+#define MAX_LAYER_NUMBER       ((uint32_t)1)
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -109,6 +129,13 @@ void BSP_LCD_Clear(uint32_t Color);
 void BSP_LCD_FillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Height);
 void BSP_LCD_DrawHLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length);
 void BSP_LCD_DrawVLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length);
+void BSP_LCD_SetTextColor(uint32_t Color);
+void BSP_LCD_DrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t RGB_Code);
+uint32_t BSP_LCD_GetXSize(void);
+uint32_t BSP_LCD_GetYSize(void);
+void BSP_LCD_DisplayStringAt(uint16_t Xpos, uint16_t Ypos, uint8_t *Text, Text_AlignModeTypdef Mode);
+void BSP_LCD_DisplayStringAtLine(uint16_t Line, uint8_t *ptr);
+void BSP_LCD_ClearStringLine(uint32_t Line);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

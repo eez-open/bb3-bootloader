@@ -95,6 +95,7 @@ blt_bool      FileHandleFirmwareUpdateRequest(void);
 tSrecLineType FileSrecGetLineType(const blt_char *line);
 blt_bool      FileSrecVerifyChecksum(const blt_char *line);
 blt_int16s    FileSrecParseLine(const blt_char *line, blt_addr *address, blt_int8u *data);
+blt_char *FileLibLongToIntString(blt_int32u long_val, blt_char *destination);
 
 #endif /* BOOT_FILE_SYS_ENABLE > 0 */
 
