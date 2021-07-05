@@ -23,7 +23,7 @@
 /* USER CODE BEGIN 0 */
 #include "ltdc.h"
 static uint32_t ActiveLayer = 0;
-static uint32_t LCD_FB_START[400][200];
+static uint16_t LCD_FB_START[480][282];
 static LCD_DrawPropTypeDef DrawProp[MAX_LAYER_NUMBER];
 /* USER CODE END 0 */
 
