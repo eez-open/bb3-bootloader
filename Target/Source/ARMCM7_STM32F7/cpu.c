@@ -32,7 +32,6 @@
 #include "boot.h"                                /* bootloader generic header          */
 #include "stm32f7xx.h"                           /* STM32 CPU and HAL header           */
 
-
 /****************************************************************************************
 * Macro definitions
 ****************************************************************************************/
@@ -41,6 +40,8 @@
 /** \brief Pointer to the user program's vector table. */
 #define CPU_USER_PROGRAM_VECTABLE_OFFSET  ((blt_int32u)NvmGetUserProgBaseAddress())
 
+// Ignore CHECKSUM
+// #define BLT_IGNORE_CHECKSUM
 
 /****************************************************************************************
 * Hook functions
@@ -75,7 +76,7 @@ void CpuInit(void)
 void CpuStartUserProgram(void)
 {
   void (*pProgResetHandler)(void);
-
+#ifndef BLT_IGNORE_CHECKSUM
   /* check if a user program is present by verifying the checksum */
   if (NvmVerifyChecksum() == BLT_FALSE)
   {
@@ -90,6 +91,7 @@ void CpuStartUserProgram(void)
     /* not a valid user program so it cannot be started */
     return;
   }
+#endif
 #if (BOOT_CPU_USER_PROGRAM_START_HOOK > 0)
   /* invoke callback */
   if (CpuUserProgramStartHook() == BLT_FALSE)
