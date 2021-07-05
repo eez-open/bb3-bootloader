@@ -35,6 +35,7 @@
 #include "stm32f7xx.h"                           /* STM32 CPU and HAL header           */
 #include "stm32f7xx_ll_gpio.h"                   /* STM32 LL GPIO header               */
 #include "file.h"
+#include "main.h"
 #include <string.h>
 
 /****************************************************************************************
