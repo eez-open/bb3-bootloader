@@ -5894,6 +5894,11 @@ TCHAR* f_gets (
 		if (c == '\n') break;		/* Break on EOL */
 	}
 	*p = 0;
+	if (!n){
+			missingSD = 1;
+			programming = 0;
+			erase =0;
+		}
 	return n ? buff : 0;			/* When no data read (eof or error), return with error. */
 }
 

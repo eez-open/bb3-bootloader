@@ -95,6 +95,7 @@ void LedBlinkTask(void)
 			value = currentAddress-134250496;
 			value = (value/fwSize)*200;
 			percent+= (long)value;
+			if (percent>399){percent=400;}
 			FileLibLongToIntString(percent/2-100,displayData);
 			strcat(displayData,"%");
 			BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
@@ -111,6 +112,8 @@ void LedBlinkTask(void)
 		}
 	  }
 	  if(errorJump){
+			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
+			LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_12);
 		  BSP_LCD_SetTextColor(0);
 		  BSP_LCD_FillRect(0,0,480,282);
 		  BSP_LCD_Clear(0);
@@ -119,15 +122,19 @@ void LedBlinkTask(void)
 		  BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)"Please restart and try again,", CENTER_MODE);
 		  BSP_LCD_DisplayStringAt(0, 160, (uint8_t*)"or use USB DFU bootloader.", CENTER_MODE);
 		  HAL_Delay(3000);
-		  CpuStartUserProgram();
+		  while(1){HAL_Delay(3000);CpuStartUserProgram();}
 	  }
 	  if(missingSD){
+			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_15);
+			LL_GPIO_SetOutputPin(GPIOD, LL_GPIO_PIN_12);
 		  BSP_LCD_SetTextColor(0);
 		  BSP_LCD_FillRect(0,0,480,282);
 		  BSP_LCD_Clear(0);
 		  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-		  BSP_LCD_DisplayStringAt(0, 100, (uint8_t*)"Missing SD card!", CENTER_MODE);
-		  BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)"Please, turn off and insert SD", CENTER_MODE);
+		  BSP_LCD_DisplayStringAt(0, 100, (uint8_t*)"SD error!", CENTER_MODE);
+		  BSP_LCD_DisplayStringAt(0, 130, (uint8_t*)"Please, turn off and check SD", CENTER_MODE);
+		  HAL_Delay(3000);
+		  while(1){HAL_Delay(3000);CpuStartUserProgram();}
 	  }
 		/* toggle the LED state */
 		if (ledOn == BLT_FALSE)
